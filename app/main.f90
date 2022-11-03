@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 04
+    goto 05
 
  01 call day01('inp/1801/input.txt')
 
@@ -10,6 +10,9 @@
 
  !04 call day04('inp/1804/test.inp')
  04 call day04('inp/1804/input.txt')
+
+ 05 call day05('inp/1805/input.txt')
+ !05 call day05('inp/1805/test.txt')
 
   end program main
 
@@ -114,3 +117,57 @@
     print '("Sleeper #",i4," Most frequent minute = ",i0)', sleeper_id2, minute_all
     print '("Answer 4/2 = ",i0,l2)', sleeper_id2*minute_all, sleeper_id2*minute_all==36896
   end subroutine day04
+
+
+
+  subroutine day05(file)
+    use day1805_mod
+    character(len=*), intent(in) :: file
+    type(unit_t) u_read, u_top
+    logical :: is_end
+    type(stack_t) :: stk
+    integer :: i, nmin
+
+    do
+      call read_unit(file, u_read, is_end)
+      if (is_end) exit
+      !print *, 'Read from file: ',u_read%m
+      if (stk%is_empty()) then
+        call stk%push(u_read)
+      else
+        u_top = stk%peek()
+        if (u_top .reducible. u_read) then
+          call stk%pop()          
+        else
+          call stk%push(u_read)          
+        end if
+      end if
+    end do
+
+    print '("Answer 5/1 ",i0,l2)',stk%size(), stk%size()==11668
+    nmin = stk%size()
+    call stack_final(stk)
+
+    do i=iachar('A'), iachar('Z')
+      do
+        call read_unit(file, u_read, is_end)
+        if (is_end) exit
+        !print *, 'Read from file: ',u_read%m
+        if (iachar(u_read%m)==i .or. iachar(u_read%m)==i+iachar('a')-iachar('A')) cycle
+        if (stk%is_empty()) then
+          call stk%push(u_read)
+        else
+          u_top = stk%peek()
+          if (u_top .reducible. u_read) then
+            call stk%pop()          
+          else
+            call stk%push(u_read)          
+          end if
+        end if
+      end do
+      print *, 'Done for '//achar(i)//' length ', stk%size()
+      if (stk%size()<nmin) nmin = stk%size()
+      call stack_final(stk)
+    end do
+    print '("Answer 5/2 ",i0,l2)', nmin, nmin==4652
+  end subroutine 
