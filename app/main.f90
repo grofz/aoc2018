@@ -1,10 +1,14 @@
   program main
     implicit none
-    goto 02
+    goto 04
 
  01 call day01('inp/1801/input.txt')
 
  02 call day02('inp/1802/input.txt')
+
+ 03 call day03('inp/1803/input.txt')
+
+ 04 call day04('inp/1804/input.txt')
 
   end program main
 
@@ -55,3 +59,56 @@
     end do
     end do
   end subroutine day02
+
+
+
+  subroutine day03(file)
+    use day1803_mod
+    !use parse_mod, only : string_t, read_strings
+    implicit none
+    character(len=*), intent(in) :: file
+    integer, allocatable :: claim(:,:), id(:,:)
+    integer, parameter   :: MAXI = 1000
+    integer :: i, j, ans2
+
+    allocate(claim(MAXI,MAXI))
+    allocate(id(MAXI,MAXI))
+    claim = 0
+    id = 0
+    call make_claims(file, claim, id)
+    print '("Answer 3/1 is ",i0,l2)', count(claim>1), count(claim>1)==107663
+
+    MLOOP: do i=1,MAXI
+    do j=1,MAXI
+      if (id(i,j) == 0) cycle
+      ans2 = id(i,j)
+      exit MLOOP
+    end do
+    end do MLOOP
+    print '("Answer 3/2 is ",i0,l2)', ans2, ans2==1166
+
+  end subroutine day03
+
+
+
+  subroutine day04(file)
+    use day1804_mod, only : string_sort, decode
+    use parse_mod, only : string_t, read_strings
+    implicit none
+    character(len=*), intent(in) :: file
+    type(string_t), allocatable :: schedule(:)
+
+    type(string_t) :: message
+    integer :: i, minute
+    character(len=5) :: date
+
+    schedule = read_strings(file)
+    call string_sort(schedule)
+
+    do i=1,size(schedule,1)
+      print *, schedule(i)%str
+      call decode(schedule(i)%str, date, minute, message) 
+    end do
+
+
+  end subroutine day04
