@@ -46,7 +46,8 @@
 
     abstract interface
       subroutine init_fun(this)
-        import
+        import container_t
+        implicit none
         class(container_t), intent(inout) :: this
 !
 ! This method MUST be used before other methods !
@@ -59,7 +60,7 @@
       end subroutine
 
       subroutine add_fun(this, dat, ierr) ! "add" and "remove"
-        import
+        import container_t, DAT_KIND
         class(container_t), intent(inout) :: this
         integer(DAT_KIND), intent(in) :: dat(:)
         integer, intent(out), optional :: ierr
@@ -71,7 +72,7 @@
       end subroutine
 
       subroutine removeall_fun(this)
-        import
+        import container_t
         class(container_t), intent(inout) :: this
 !
 ! Remove all elements from the container
@@ -79,7 +80,7 @@
       end subroutine
 
       pure subroutine resetcurrent_fun(this, handle)
-        import
+        import container_t, DAT_KIND
         class(container_t), intent(in) :: this
         integer(DAT_KIND), allocatable, intent(out) :: handle(:)
 !
@@ -88,7 +89,7 @@
       end subroutine 
 
       function nextread_fun(this, handle, ierr) result(dat)
-        import
+        import container_t, DAT_KIND
         integer(DAT_KIND), allocatable :: dat(:)
         class(container_t), intent(in) :: this
         integer(DAT_KIND), intent(inout) :: handle(:)
@@ -100,18 +101,18 @@
       end function
 
       logical function isin_fun(this, dat)
-        import
+        import DAT_KIND, container_t
         class(container_t), intent(in) :: this
         integer(DAT_KIND), intent(in) :: dat(:)
       end function
 
       pure logical function isempty_fun(this)
-        import
+        import container_t
         class(container_t), intent(in) :: this
       end function
 
       integer function count_fun(this)
-        import
+        import container_t
         class(container_t), intent(in) :: this
 !
 ! Return number of elements in the container
@@ -119,7 +120,7 @@
       end function
 
       subroutine copy_fun(aout, bin)
-        import
+        import container_t
         class(container_t), intent(out) :: aout
         class(container_t), intent(in) :: bin
 !
@@ -128,7 +129,7 @@
       end subroutine
 
       subroutine print_fun(this)
-        import
+        import container_t
         class(container_t), intent(in) :: this
 !
 ! Print all elements in the container (for debugging only)

@@ -8,6 +8,7 @@
 
  03 call day03('inp/1803/input.txt')
 
+ !04 call day04('inp/1804/test.inp')
  04 call day04('inp/1804/input.txt')
 
   end program main
@@ -92,23 +93,24 @@
 
 
   subroutine day04(file)
-    use day1804_mod, only : string_sort, decode
+    use day1804_mod, only : shift_t, make_shifts, find_longest_sleeper, most_frequent_minute
     use parse_mod, only : string_t, read_strings
     implicit none
     character(len=*), intent(in) :: file
-    type(string_t), allocatable :: schedule(:)
+    type(shift_t), allocatable :: shifts(:), sleeper_shifts(:)
 
     type(string_t) :: message
-    integer :: i, minute
+    integer :: i, sleeper_id, minute, minute_all, sleeper_id2
     character(len=5) :: date
 
-    schedule = read_strings(file)
-    call string_sort(schedule)
+    call make_shifts(read_strings(file), shifts)
+    call find_longest_sleeper(shifts, sleeper_id, sleeper_shifts, minute_all, sleeper_id2)
+    call most_frequent_minute(sleeper_shifts, minute)
 
-    do i=1,size(schedule,1)
-      print *, schedule(i)%str
-      call decode(schedule(i)%str, date, minute, message) 
-    end do
-
-
+    ! Answer Part 1
+    print '("Sleeper #",i4," Most frequent minute = ",i0)', sleeper_id, minute
+    print '("Answer 4/1 = ",i0,l2)', sleeper_id*minute, sleeper_id*minute==11367
+    ! Answer Part 2
+    print '("Sleeper #",i4," Most frequent minute = ",i0)', sleeper_id2, minute_all
+    print '("Answer 4/2 = ",i0,l2)', sleeper_id2*minute_all, sleeper_id2*minute_all==36896
   end subroutine day04

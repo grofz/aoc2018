@@ -1019,17 +1019,17 @@ print *, "insert_recurse: duplicit not ready yet"
 
 
 
-    subroutine basetree_Display(this)
+    module subroutine basetree_Display(this)
       class(basetree_t), intent(in) :: this
 !
 ! A graphical expression of the tree (for small trees only)
 !
-      type basenode_ptr
-        class(basenode_t), pointer :: p
-      end type
+     !type basenode_ptr
+     !  class(basenode_t), pointer :: p
+     !end type
       integer, parameter :: &
           CH = 2,       & ! node width...
-          AD = 1,       & ! ... plus one character for / and \ 
+          AD = 1,       & ! ... plus one character for / and \. 
           MAXLEVEL = 5, & ! (2**5)=32 nodes at fifth level
           LINE = 96       ! needs 32*(2+1) = 96 cbaracters
       integer :: gap, n, level, i, height(2)
@@ -1082,23 +1082,23 @@ print *, "insert_recurse: duplicit not ready yet"
         type(basenode_ptr), intent(in) :: pin(:)
         type(basenode_ptr), intent(in) :: new
         type(basenode_ptr), allocatable :: pout(:)
-        integer :: n
-        n = size(pin)
-        allocate(pout(n+1))
-        pout(1:n) = pin
-        pout(n+1) = new
+        integer :: nn
+        nn = size(pin)
+        allocate(pout(nn+1))
+        pout(1:nn) = pin
+        pout(nn+1) = new
       end function enqueue
 
       function dequeue(pin, removed) result(pout)
         type(basenode_ptr), intent(in) :: pin(:)
         type(basenode_ptr), intent(out) :: removed
         type(basenode_ptr), allocatable :: pout(:)
-        integer :: n
-        n = size(pin)
-        if (n==0) error stop 'dequeue empty'
-        allocate(pout(n-1))
+        integer :: nn
+        nn = size(pin)
+        if (nn==0) error stop 'dequeue empty'
+        allocate(pout(nn-1))
         removed = pin(1)
-        pout = pin(2:n)
+        pout = pin(2:nn)
       end function dequeue
     end subroutine basetree_Display
 
