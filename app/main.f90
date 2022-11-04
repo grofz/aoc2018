@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 060
+    goto 061
 
  010 call day01('inp/1801/input.txt')
 
@@ -20,7 +20,11 @@
      goto 070
  061 call day06('inp/1806/test.txt')
 
- 070 continue
+ 070 call day07('inp/1807/input.txt')
+     goto 999
+ 071 call day07('inp/1807/test.txt')
+
+ 999 continue
 
   end program main
 
@@ -198,7 +202,7 @@
 
     if (size(points)<10) then
       do i=lbound(board%a,dim=1), ubound(board%a,dim=1)
-        write(*,'("[",*(i0,1x))',advance='no'), board%a(i,:)
+        write(*,'("[",*(i0,1x))',advance='no') board%a(i,:)
         write(*,'(a)') ']'
       end do
     end if
@@ -210,5 +214,13 @@
     if (size(points)<10) thr = SET_THRESHOLD(1)
     ans2 = count(board%b < thr)
     print '("Answer 6/2: ",i0, l2)', ans2, ans2==37318
+  end subroutine
 
+
+
+  subroutine day07(file)
+    use day1807_mod
+    implicit none
+    character(len=*), intent(in) :: file
+    print *, 'Solution for day 7 not ready yet'
   end subroutine

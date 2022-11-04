@@ -56,7 +56,6 @@ print *, 'ubounds =', ubound(this%a)
                     b = b + abs(ip(1)-points(i)%x(1)) + abs(ip(2)-points(i)%x(2))
                 end do
             end associate
-
         end do
         end do
     end subroutine
