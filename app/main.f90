@@ -1,18 +1,26 @@
   program main
     implicit none
-    goto 05
+    goto 060
 
- 01 call day01('inp/1801/input.txt')
+ 010 call day01('inp/1801/input.txt')
 
- 02 call day02('inp/1802/input.txt')
+ 020 call day02('inp/1802/input.txt')
 
- 03 call day03('inp/1803/input.txt')
+ 030 call day03('inp/1803/input.txt')
 
- !04 call day04('inp/1804/test.inp')
- 04 call day04('inp/1804/input.txt')
+ 040 call day04('inp/1804/input.txt')
+     goto 050
+ 041 call day04('inp/1804/test.inp')
 
- 05 call day05('inp/1805/input.txt')
- !05 call day05('inp/1805/test.txt')
+ 050 call day05('inp/1805/input.txt')
+     goto 060
+ 051 call day05('inp/1805/test.txt')
+
+ 060 call day06('inp/1806/input.txt')
+     goto 070
+ 061 call day06('inp/1806/test.txt')
+
+ 070 continue
 
   end program main
 
@@ -122,6 +130,7 @@
 
   subroutine day05(file)
     use day1805_mod
+    implicit none
     character(len=*), intent(in) :: file
     type(unit_t) u_read, u_top
     logical :: is_end
@@ -171,3 +180,35 @@
     end do
     print '("Answer 5/2 ",i0,l2)', nmin, nmin==4652
   end subroutine 
+
+
+
+  subroutine day06(file)
+    use day1806_mod
+    implicit none
+    character(len=*), intent(in) :: file
+    type(point_t), allocatable :: points(:)
+    type(area_t) :: board
+    integer :: i, ans1, thr, ans2
+    integer, parameter :: SET_THRESHOLD(2) = [32, 10000]
+
+
+    points = read_points_from_file(file)
+    call board%populate(points)
+
+    if (size(points)<10) then
+      do i=lbound(board%a,dim=1), ubound(board%a,dim=1)
+        write(*,'("[",*(i0,1x))',advance='no'), board%a(i,:)
+        write(*,'(a)') ']'
+      end do
+    end if
+
+    call board%area_count(points,ans1)
+    print '("Answer 6/1: ",i0, l2)', ans1, ans1==4290
+
+    thr = SET_THRESHOLD(2)
+    if (size(points)<10) thr = SET_THRESHOLD(1)
+    ans2 = count(board%b < thr)
+    print '("Answer 6/2: ",i0, l2)', ans2, ans2==37318
+
+  end subroutine
