@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 070
+    goto 080
 
  010 call day01('inp/1801/input.txt')
 
@@ -25,8 +25,13 @@
  071 call day07('inp/1807/test.txt')
 
  080 call day08('inp/1808/input.txt')
-     goto 999
+     goto 090
  081 call day08('inp/1808/test.txt')
+
+ 090 call day09('inp/1809/input.txt')
+ goto 999
+ 091 call day09('inp/1809/test.txt')
+
 
  999 continue
 
@@ -248,5 +253,33 @@
 
 
   subroutine day08(file)
+    use parse_mod, only : string_t, read_strings, split
+    use day1808_mod, only : sum_meta
+    implicit none
     character(len=*), intent(in) :: file
+    type(string_t), allocatable :: lines(:), splits(:)
+    integer, allocatable :: arr(:)
+    integer :: i, ans1, ans2
+
+    lines = read_strings(file)
+    if (size(lines)/=1) error stop 'day08: only one line expected'
+    call split(lines(1)%str, ' ', splits)
+    allocate(arr(size(splits)))
+    do i=1,size(arr)
+      arr(i) = splits(i)%to_int()
+    end do
+    !print *, arr
+
+    i = 1
+    call sum_meta(i, arr, ans1, ans2)
+    print '("Answer 8/1 = ",i0,l2)', ans1, ans1==38722
+    print '("Answer 8/2 = ",i0,l2)', ans2, ans2==13935
   end subroutine day08
+
+
+
+  subroutine day09(file)
+    use day1809_mod
+    implicit none
+    character(len=*), intent(in) :: file
+  end subroutine day09
