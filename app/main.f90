@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 080
+    goto 090
 
  010 call day01('inp/1801/input.txt')
 
@@ -28,9 +28,13 @@
      goto 090
  081 call day08('inp/1808/test.txt')
 
- 090 call day09('inp/1809/input.txt')
- goto 999
- 091 call day09('inp/1809/test.txt')
+ 090 call day09(441,71032)
+ goto 100
+ 091 call day09(30,5807)
+
+ 100 call day10('inp/1810/input.txt')
+     goto 999
+ 101 call day10('inp/1810/test.txt')
 
 
  999 continue
@@ -278,8 +282,23 @@
 
 
 
-  subroutine day09(file)
+  subroutine day09(nplayers, nmarbles)
     use day1809_mod
+    use kinds_m, only : I8B
+    implicit none
+    integer, intent(in) :: nplayers, nmarbles
+    integer(I8B) :: ans1, ans2
+    call main_play(nplayers, nmarbles, ans1)
+    print '("Answer 9/1: ",i0,l2)', ans1, ans1==393229
+
+    call main_play(nplayers, nmarbles*100, ans2)
+    print '("Answer 9/2: ",i0,l2)', ans2, ans2==3273405195_I8B
+  end subroutine day09
+
+
+
+  subroutine day10(file)
+    use day1810_mod
     implicit none
     character(len=*), intent(in) :: file
-  end subroutine day09
+  end subroutine day10
