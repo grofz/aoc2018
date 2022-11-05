@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 061
+    goto 070
 
  010 call day01('inp/1801/input.txt')
 
@@ -21,8 +21,12 @@
  061 call day06('inp/1806/test.txt')
 
  070 call day07('inp/1807/input.txt')
-     goto 999
+     goto 080
  071 call day07('inp/1807/test.txt')
+
+ 080 call day08('inp/1808/input.txt')
+     goto 999
+ 081 call day08('inp/1808/test.txt')
 
  999 continue
 
@@ -219,8 +223,30 @@
 
 
   subroutine day07(file)
-    use day1807_mod
+    use day1807_mod, only : graph_t, solve_part1, solve_part2
     implicit none
     character(len=*), intent(in) :: file
-    print *, 'Solution for day 7 not ready yet'
-  end subroutine
+    type(graph_t) :: main
+    character(len=:), allocatable :: list_of_steps
+    integer :: total_time
+    integer, parameter :: BASE_TIME_TEST = 0, BASE_TIME_LIVE = 60
+    integer, parameter :: NWORKERS_TEST = 2, NWORKERS_LIVE = 5
+    
+    main = graph_t(file)
+    list_of_steps = solve_part1(main)
+    print '("Answer 7/1 ",a," valid? ",l1)', &
+        list_of_steps, list_of_steps=='HPDTNXYLOCGEQSIMABZKRUWVFJ'
+
+    if (count(main%finished)>10) then
+      call solve_part2(main, NWORKERS_TEST, BASE_TIME_TEST, total_time)
+    else
+      call solve_part2(main, NWORKERS_LIVE, BASE_TIME_LIVE, total_time)
+    end if
+    print '("Answer 7/2 ",i0," valid? ",l1)', total_time, total_time==908
+  end subroutine day07
+
+
+
+  subroutine day08(file)
+    character(len=*), intent(in) :: file
+  end subroutine day08
