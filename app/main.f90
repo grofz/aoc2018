@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 090
+    goto 100
 
  010 call day01('inp/1801/input.txt')
 
@@ -298,7 +298,16 @@
 
 
   subroutine day10(file)
-    use day1810_mod
+    use day1810_mod, only : stars_t
     implicit none
     character(len=*), intent(in) :: file
+    type(stars_t) :: obj
+
+    obj = stars_t(file)
+    print *, 'limits$', obj%limits()
+    call obj%align()
+    print *, 'limits$', obj%limits()
+    call obj%print()
+    print '("Answer 10/2 ",i0,l2)', obj%gettime(), obj%gettime()==10355
+    print *
   end subroutine day10
