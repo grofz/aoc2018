@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 100
+    goto 120
 
  010 call day01('inp/1801/input.txt')
 
@@ -29,12 +29,23 @@
  081 call day08('inp/1808/test.txt')
 
  090 call day09(441,71032)
- goto 100
+     goto 100
  091 call day09(30,5807)
 
  100 call day10('inp/1810/input.txt')
-     goto 999
+     goto 110
  101 call day10('inp/1810/test.txt')
+
+ 110 call day11(7689)
+     goto 120
+
+ 120 call day12('inp/1812/input.txt')
+     goto 130
+ 121 call day12('inp/1812/test.txt')
+
+ 130 call day13('inp/1813/input.txt')
+     goto 999
+ 131 call day13('inp/1813/test.txt')
 
 
  999 continue
@@ -311,3 +322,90 @@
     print '("Answer 10/2 ",i0,l2)', obj%gettime(), obj%gettime()==10355
     print *
   end subroutine day10
+
+
+
+  subroutine day11(sernum)
+    use day1811_mod
+    implicit none
+    integer, intent(in) :: sernum
+
+    integer :: i, pos(3), mxpos(2), mx, mxsize
+    type(grid_t) :: grid
+
+    ! test cases
+    print *, power_level(3,5,8)==4, power_level(122,79,57)==-5,&
+    &   power_level(217,196,39)==0, power_level(101,153,71)==4
+
+    grid = grid_t(sernum)
+    pos = find_max_square(grid,3)
+    print '("Answer 11/1 : ",i0,",",i0, l2)', pos(1:2), pos(1)==20 .and. pos(2)==37
+
+    mxsize = -1
+    mxpos = -1
+    mx = -huge(mx)
+    do i=1,30
+      pos = find_max_square(grid,i)
+      if (pos(3)>mx) then
+        mx = pos(3)
+        mxsize = i
+        mxpos = pos(1:2)
+      end if
+    end do
+
+    print '("Answer 11/2 : ",3(i0,","),l2)', mxpos,mxsize, &
+      mxpos(1)==90 .and. mxpos(2)==169 .and. mxsize==15
+  end subroutine
+
+
+
+  subroutine day12(file)
+    use day1812_mod
+    implicit none
+    character(len=*), intent(in) :: file
+    type(pots_t) :: obj, steady
+    integer :: i, j, nguessed_ok
+    integer(LONG) :: ans2
+
+    obj = pots_t(file)
+    do 
+      print '(i3,1x,*(a))',obj%generation,(obj%pots(j),j=obj%lind,obj%rind)
+      if (obj%generation>=20) exit
+      call obj%grow()
+    end do
+    print *
+    print *, 'Answer 12/1 is', obj%score(), obj%score()==4818
+    print *
+
+    ! Grow until steady-state reached
+    ! Prediction three times in a row
+    steady = obj
+    nguessed_ok = 0
+    do 
+      call obj%grow()
+      print '(i3,1x,*(a))',obj%generation,(obj%pots(j),j=obj%lind,obj%rind)
+      if (predict_score(steady,int(obj%generation,LONG))==int(obj%score(),LONG)) then
+        nguessed_ok = nguessed_ok + 1
+        !print '("gen=",i0," seems steady for ",i0," generations")', obj%generation, nguessed_ok
+        if (nguessed_ok >= 3) exit
+      else
+        !if (nguessed_ok /= 0) print '("gen=",i0," changing again")',obj%generation
+        nguessed_ok = 0
+        steady = obj
+      end if
+      if (obj%generation>=200) exit ! safe-guard
+    end do
+
+    ! Answer part 2
+    ans2 = predict_score(steady,50000000000_LONG)
+    print *, 'Answer 12/2 is', ans2, ans2==5100000001377_LONG
+    print *
+  end subroutine day12
+
+
+
+  subroutine day13(file)
+    use day1813_mod
+    implicit none
+    character(len=*), intent(in) :: file
+  end subroutine
