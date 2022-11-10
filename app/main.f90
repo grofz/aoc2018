@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 120
+    goto 130
 
  010 call day01('inp/1801/input.txt')
 
@@ -408,4 +408,12 @@
     use day1813_mod
     implicit none
     character(len=*), intent(in) :: file
+    type(mine_t) :: mine
+
+    mine = mine_t(file)
+    call mine % displayboard()
+    do 
+      call mine%movecarts
+      if (mine%tick>2000) exit
+    end do
   end subroutine
