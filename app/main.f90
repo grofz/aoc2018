@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 150
+    goto 160
 
  010 call day01('inp/1801/input.txt')
 
@@ -52,12 +52,74 @@
  141 call day14(3000)
 
  150 call day15('inp/1815/input.txt')
-     goto 999
+     goto 160
  151 call day15('inp/1815/test5.txt') ! test0.txt - test5.txt
+
+ 160 call day16('inp/1816/input.txt')
 
  999 continue
 
   end program main
+
+
+
+  subroutine day16(file)
+    use day1816_mod
+    implicit none
+    character(len=*) :: file
+    type(test_t), allocatable :: tests(:)
+    logical :: map(0:NOPS-1,0:NOPS-1)
+    integer :: decode(0:NOPS-1)
+    type(computer_t) :: zx
+
+    integer :: inst(4), after(4), i, ans1, j, k
+    logical, allocatable :: results(:)
+    integer, allocatable :: code(:,:)
+
+    map = .true.
+    decode = -1
+    call read_tests(file, tests, code)
+    ans1 = 0
+    do i=1,size(tests)
+      results = test_line(tests(i)%befo,tests(i)%inst,tests(i)%afte)
+      where(.not. results) map(tests(i)%inst(1),:) = .false.      
+      !print *, tests(i)%inst(1), count(results), results
+      if (count(results)>=3) ans1 = ans1 + 1
+    end do
+    print *, ans1, ans1==612
+    
+    do k=1,8
+    do i=0,NOPS-1
+      print *, i, dd(map(i,:))
+    end do
+    print *
+    call map_reduce(map,decode)
+    if (count(decode<0)==0) exit
+  end do
+  print '(*(i2,1x))', decode
+  zx%dict = decode
+  do i=1,size(tests)
+    zx%r = tests(i)%befo
+    call zx%exec(tests(i)%inst)
+    if(.not. all(zx%r==tests(i)%afte)) error stop 'test sample fail'
+  end do
+
+    ! run test code
+    zx%r=0
+    do i=1,size(code,2)
+      call zx%exec(code(:,i))
+      print *, code(:,i), zx%r
+    end do
+
+    contains
+      elemental function dd(lg)
+        logical, intent(in) :: lg
+        character(len=2) :: dd
+        dd = '  '
+        if (lg) dd =' T'
+      end function
+    
+  end subroutine
 
 
 
