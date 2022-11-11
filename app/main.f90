@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 140
+    goto 150
 
  010 call day01('inp/1801/input.txt')
 
@@ -48,9 +48,12 @@
  131 call day13('inp/1813/test2.txt')
 
  140 call day14(540561)
-     goto 999
+     goto 150
  141 call day14(3000)
 
+ 150 call day15('inp/1815/input.txt')
+     goto 999
+ 151 call day15('inp/1815/test5.txt') ! test0.txt - test5.txt
 
  999 continue
 
@@ -462,3 +465,52 @@
     end do
     print '(a,i0,l2)','Answer 14/2 ',obj%ans2, obj%ans2==20254833
   end subroutine day14
+
+
+
+  subroutine day15(file)
+    use day1815_mod
+    implicit none
+    character(len=*), intent(in) :: file
+    type(board_t) :: obj
+    integer, allocatable :: test(:,:)
+    logical, allocatable :: ltest(:,:)
+    integer :: dest(2), score, ans1, ans2, nelves0, ap
+
+    ! Part One
+    obj = board_t(file)
+    call obj%display()
+    do
+      call obj%oneround()
+      !call obj%display()
+      if (obj%round>500) exit
+      if (any(obj%nunits==0)) exit
+    end do
+    score = obj%final_score()
+    ans1 = score*obj%round
+    print *, 'score ',score,ans1,319410==ans1
+
+    ! Part two 
+    ap = 4
+    do
+      obj = board_t(file,ap)
+      nelves0 = obj%nunits(ID_ELF)
+      do
+        call obj%oneround()
+        if (obj%round>500) exit
+        if (any(obj%nunits==0)) exit
+      end do
+      call obj%display()
+      if (obj%nunits(ID_ELF)/=nelves0) then
+        ap = ap + 1
+      else 
+        exit
+      end if
+    end do
+    score = obj%final_score()
+    ans2 = score*obj%round
+    print *, 'score ',score, ans2, 63168==ans2
+
+    print '("Answer 15/1: ", i0, l2)', ans1, ans1==319410
+    print '("Answer 15/2: ", i0, l2)', ans2, ans2==63168
+  end subroutine day15
