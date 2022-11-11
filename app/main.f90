@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 130
+    goto 140
 
  010 call day01('inp/1801/input.txt')
 
@@ -49,7 +49,7 @@
 
  140 call day14(540561)
      goto 999
- 141 call day14(111)
+ 141 call day14(3000)
 
 
  999 continue
@@ -432,5 +432,33 @@
 
 
   subroutine day14(input)
+    use day1814_mod, only : recipes_t
+    use dll_mod, only : dll_export, node_t
+    implicit none
     integer, intent(in) :: input
+    type(recipes_t) :: obj
+    integer,allocatable :: ans1(:)
+    integer :: i
+
+    obj = recipes_t(input)
+    print '(a,*(i1,:,1x))', 'Input: ',obj%pattern
+
+    ! Part one
+    do 
+      call obj%add_recipe()
+      call obj%move_elves()
+      !print '(*(i1,:,1x))', dll_export(obj%head)
+      if (obj%n > input+10) exit
+    end do
+    ans1 = obj%score(input) 
+    write(*,'(a,*(i1))',advance='no') 'Answer 14/1 ', ans1 
+    write(*,'(l3)') all(ans1==[1,4,1,3,1,3,1,3,3,9])
+
+    ! Part two - continue until pattern has been found
+    do i=1,100000000
+      call obj%add_recipe()
+      call obj%move_elves()
+      if (obj%pattern_match==size(obj%pattern)) exit
+    end do
+    print '(a,i0,l2)','Answer 14/2 ',obj%ans2, obj%ans2==20254833
   end subroutine day14
