@@ -44,8 +44,12 @@
  121 call day12('inp/1812/test.txt')
 
  130 call day13('inp/1813/input.txt')
+     goto 140
+ 131 call day13('inp/1813/test2.txt')
+
+ 140 call day14(540561)
      goto 999
- 131 call day13('inp/1813/test.txt')
+ 141 call day14(111)
 
 
  999 continue
@@ -409,11 +413,24 @@
     implicit none
     character(len=*), intent(in) :: file
     type(mine_t) :: mine
+    integer :: ans1(2), ans2(2)
+    logical :: first_crash
 
     mine = mine_t(file)
+    first_crash = .false.
     call mine % displayboard()
     do 
-      call mine%movecarts
-      if (mine%tick>2000) exit
+      call mine%movecarts(first_crash, ans1)
+      if (mine%tick>20000) exit
+      if (mine%ncarts<=1) exit
     end do
-  end subroutine
+    if (mine%ncarts /=1) error stop 'day 13 - more than one cart remains on tracks'
+    ans2 = mine%carts(1)%pos-1
+    print '("Answer 13/1 ",i0,",",i0,l2)', ans1, ans1(1)==139 .and. ans1(2)==65
+    print '("Answer 13/2 ",i0,",",i0,l2)', ans2, ans2(1)==40 .and. ans2(2)==77
+  end subroutine day13
+
+
+  subroutine day14(input)
+    integer, intent(in) :: input
+  end subroutine day14
