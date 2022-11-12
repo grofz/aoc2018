@@ -22,21 +22,68 @@ module day1816_mod
     end interface
 contains
 
-    subroutine map_reduce(map, decode)
+    subroutine run_tests(tests, map, ans1)
+        type(test_t), intent(in) :: tests(:)
+        logical , intent(out):: map(0:NOPS-1,0:NOPS-1)
+        integer, intent(out) :: ans1 
+        
+        integer :: i
+        logical, allocatable :: results(:)
+        map = .true.    
+        ans1 = 0
+        do i=1,size(tests)
+            results = test_line(tests(i)%befo,tests(i)%inst,tests(i)%afte)
+            where(.not. results) map(tests(i)%inst(1),:) = .false.            
+            if (count(results)>=3) ans1 = ans1 + 1
+        end do    
+    end subroutine
+
+
+    function decode_opcodes(map) result(decode)
+        logical, intent(inout) :: map(0:NOPS-1,0:NOPS-1)
+        integer :: decode(0:NOPS-1)
+
+        integer :: i, ksafe
+        
+        decode = -1
+        ksafe = 0
+        do
+            print *
+            print '("Step ",i0,"    Not yet identified opcodes ",i0)', &
+            & ksafe, count(decode<0)
+            do i=0,NOPS-1
+                print '("Opcode ",i2, 3x, *(a))', &
+                & i, emptylog(map(i,:))
+            end do
+            print '(12x,*(i2,1x))', decode
+            if (count(decode<0)==0) exit
+            call map_reduce_step(map,decode)            
+            ksafe = ksafe+1
+            if (ksafe > 10) error stop 'decode opcodes - failed'
+        end do
+    contains
+        elemental function emptylog(lg)
+            logical, intent(in) :: lg
+            character(len=3) :: emptylog
+            emptylog = ' . '
+            if (lg) emptylog =' T '
+        end function
+    end function
+
+
+    subroutine map_reduce_step(map, decode)
         logical, intent(inout) :: map(:,:)
         integer, intent(inout) :: decode(:)
         
         integer :: i, j
-
         do i=1, size(map,1)
             if (count(map(i,:))==1) then               
                 j = findloc(map(i,:),.true.,dim=1)
-                if (decode(i)==j-1) then
-                    ! already known
-                else
+                if (decode(i) /= j-1) then                
                     map(:,j) = .false.
                     map(i,j) = .true.
-                    print *, 'reduced ',i-1,j-1
+                    print '("Opcode ",i2," identified as instruction ",i2)', &
+                    &  i-1,j-1
                     decode(i) = j-1
                 end if
             end if
@@ -100,13 +147,6 @@ contains
         integer, intent(in) :: inst(4)
 
         integer :: op1, op2
-
-        ! known codes
-        !this%dict(11)= 11
-        !this%dict(6) = 12
-        !this%dict(12)= 13
-        !this%dict(13)= 14
-        !this%dict(4) = 15
         
         associate(a=>inst(2), b=>inst(3), c=>inst(4))
             select case(this%dict(inst(1)))
@@ -182,7 +222,7 @@ contains
                 error stop 'exec - unknown opcode'
             end select
         end associate
-    end subroutine
+    end subroutine computer_exec
 
 
     elemental function op_band(a,b) result(c)

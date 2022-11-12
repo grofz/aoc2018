@@ -14,7 +14,7 @@
   module day1815_mod
     implicit none
     private
-    public array_display, ID_ELF
+    public array_display, ID_ELF, manhattan, accessible_i
 
     character(len=1), parameter :: CH_WALL='#', CH_EMPT='.', CH_UNIT(2)=['E','G']
     integer, parameter :: ID_ELF = 1, ID_GOB = 2
@@ -59,6 +59,15 @@
 
     interface array_display
       module procedure array_display_int, array_display_log
+    end interface
+
+    ! to identify what square is accessible
+    abstract interface
+        pure function accessible_i(ch) result(is_accessible)
+          implicit none
+          character(len=1), intent(in) :: ch
+          logical :: is_accessible
+        end function
     end interface
 
   contains
@@ -305,7 +314,7 @@
         next = 0
         return
       end if
-      manh = manhattan(dest, board)
+      manh = manhattan(dest, board, accessible_fun)
       map = free_ngb_squares(this%pos, board)
       where (map)
         manh = manh
@@ -351,7 +360,7 @@
       end do
 
       ! remove not-accessible squares
-      manh = manhattan(this%pos, board)
+      manh = manhattan(this%pos, board, accessible_fun)
       where (map .and. manh >= 0)
         dest = manh
       else where
@@ -447,10 +456,11 @@
     end function
 
 
-    function manhattan(pos_start, board) result(map)
+    function manhattan(pos_start, board, accessible) result(map)
       integer, intent(in) :: pos_start(2)
       character(len=1), intent(in) :: board(:,:)
       integer :: map(size(board,1),size(board,2))
+      procedure(accessible_i) :: accessible
 !
 ! TODO - i am using non-efficient allocation/deallocation of whole array
 ! I should use an queue / priority queue
@@ -463,16 +473,17 @@
       xq(1) = pos_start(1)
       yq(1) = pos_start(2)
       do
-        call manhattan_crawl(xq,yq,map,board)
+        call manhattan_crawl(xq,yq,map,board,accessible)
         if (size(xq)==0) exit
       end do
     end function
 
 
-    subroutine manhattan_crawl(xq,yq,map,board)
+    subroutine manhattan_crawl(xq,yq,map,board,accessible)
       integer, intent(inout), allocatable :: xq(:), yq(:)
       integer, intent(inout) :: map(:,:)
       character(len=1), intent(in) :: board(:,:)
+      procedure(accessible_i) :: accessible
 
       integer :: pos(2), maxpos(2), minpos(2), i, j, d0
       logical :: was_swap
@@ -494,7 +505,8 @@
           ! ignore already visited
           if (map(i,j)/=-1) cycle
           ! ignore not accessible squares
-          if (board(i,j)/=CH_EMPT) cycle
+          !if (board(i,j)/=CH_EMPT) cycle
+          if (.not. accessible(board(i,j))) cycle
           ! mark and add to the queue
           map(i,j) = d0+1
           xq = [xq, i]
@@ -525,6 +537,14 @@
         yq(s) = tmp
       end subroutine
     end subroutine manhattan_crawl
+
+
+    pure function accessible_fun(ch) result(is)
+      character(len=1), intent(in) :: ch 
+      logical :: is
+      is = ch==CH_EMPT
+    end function
+
 
 
     elemental function gt_unit(a,b) result(gt)

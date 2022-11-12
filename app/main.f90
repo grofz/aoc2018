@@ -56,71 +56,14 @@
  151 call day15('inp/1815/test5.txt') ! test0.txt - test5.txt
 
  160 call day16('inp/1816/input.txt')
+ goto 999
+
+ 200 call day20('inp/1820/input.txt') ! test cases available
 
  999 continue
 
   end program main
-
-
-
-  subroutine day16(file)
-    use day1816_mod
-    implicit none
-    character(len=*) :: file
-    type(test_t), allocatable :: tests(:)
-    logical :: map(0:NOPS-1,0:NOPS-1)
-    integer :: decode(0:NOPS-1)
-    type(computer_t) :: zx
-
-    integer :: inst(4), after(4), i, ans1, j, k
-    logical, allocatable :: results(:)
-    integer, allocatable :: code(:,:)
-
-    map = .true.
-    decode = -1
-    call read_tests(file, tests, code)
-    ans1 = 0
-    do i=1,size(tests)
-      results = test_line(tests(i)%befo,tests(i)%inst,tests(i)%afte)
-      where(.not. results) map(tests(i)%inst(1),:) = .false.      
-      !print *, tests(i)%inst(1), count(results), results
-      if (count(results)>=3) ans1 = ans1 + 1
-    end do
-    print *, ans1, ans1==612
-    
-    do k=1,8
-    do i=0,NOPS-1
-      print *, i, dd(map(i,:))
-    end do
-    print *
-    call map_reduce(map,decode)
-    if (count(decode<0)==0) exit
-  end do
-  print '(*(i2,1x))', decode
-  zx%dict = decode
-  do i=1,size(tests)
-    zx%r = tests(i)%befo
-    call zx%exec(tests(i)%inst)
-    if(.not. all(zx%r==tests(i)%afte)) error stop 'test sample fail'
-  end do
-
-    ! run test code
-    zx%r=0
-    do i=1,size(code,2)
-      call zx%exec(code(:,i))
-      print *, code(:,i), zx%r
-    end do
-
-    contains
-      elemental function dd(lg)
-        logical, intent(in) :: lg
-        character(len=2) :: dd
-        dd = '  '
-        if (lg) dd =' T'
-      end function
-    
-  end subroutine
-
+  
 
 
   subroutine day01(file)
@@ -576,3 +519,72 @@
     print '("Answer 15/1: ", i0, l2)', ans1, ans1==319410
     print '("Answer 15/2: ", i0, l2)', ans2, ans2==63168
   end subroutine day15
+
+
+
+  subroutine day16(file)
+    use day1816_mod
+    implicit none
+    character(len=*) :: file
+    type(test_t), allocatable :: tests(:)
+    logical :: map(0:NOPS-1,0:NOPS-1)    
+    integer, allocatable :: decode(:)
+    type(computer_t) :: zx
+    integer :: inst(4), after(4), i, ans1, j, k
+    integer, allocatable :: code(:,:)
+
+    call read_tests(file, tests, code)
+    call run_tests(tests, map, ans1)
+    print '("Answer 16/1 ",i0,l2)', ans1, ans1==612
+    
+    ! Part two
+    decode = decode_opcodes(map)       
+    zx%dict = decode
+    zx%r=0
+    do i=1,size(code,2)
+      call zx%exec(code(:,i))
+      print *, code(:,i), zx%r
+    end do    
+  end subroutine day16
+
+
+
+  subroutine day20(file)
+    use day1820_mod
+    use day1815_mod, only : manhattan, accessible_i, array_display
+    use parse_mod, only : string_t, read_strings
+    implicit none
+    character(len=*), intent(in) :: file
+    type(string_t), allocatable :: lines(:), input(:)
+    integer :: iend, pos(2), ans1, ans2
+    type(maze_t) :: maze
+    integer, allocatable :: manh(:,:)
+    
+    lines = read_strings(file)
+    ! remove ^ and $ characters around the path
+    call parse(lines(1)%str, input, iend)
+    if (size(input)/=1) error stop 'day20 - something left out in the input'
+    
+    ! first pass to get maze size
+    ! second pass to get maze layout
+    pos = 0
+    call crawler(input(1)%str, pos, maze)
+    call maze%alloc()
+    call crawler(input(1)%str, pos, maze)
+    call maze%remove_unknowns()
+    call maze%display()
+    print '("Maze size ",i0," x ",i0)', size(maze%b,1), size(maze%b,2)
+    
+    ! manhattan distance map from the original position
+    pos = pos - lbound(maze%b) + 1    
+    manh = manhattan(pos, maze%b, maze_accessible)
+    !call array_display(manh)
+    
+    ! part one
+    ans1 = maxval(manh)/2
+    print '("Answer 20/1 :",i0,l2)', ans1, ans1==3574    
+
+    ! part two
+    ans2 = count(manh>=2000 .and. maze%b==CH_ROOM)
+    print '("Answer 20/1 :",i0,l2)', ans2, ans2==8444
+  end subroutine day20

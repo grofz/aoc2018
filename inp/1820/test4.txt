@@ -1,0 +1,2 @@
+^ENWWW(NEEE|SSE(EE|N))$
+10
