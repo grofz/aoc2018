@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 160
+    goto 170
 
  010 call day01('inp/1801/input.txt')
 
@@ -56,6 +56,10 @@
  151 call day15('inp/1815/test5.txt') ! test0.txt - test5.txt
 
  160 call day16('inp/1816/input.txt')
+     goto 170
+
+ 170 call day17('inp/1817/test.txt') ! test.txt
+
  goto 999
 
  200 call day20('inp/1820/input.txt') ! test cases available
@@ -546,6 +550,16 @@
       print *, code(:,i), zx%r
     end do    
   end subroutine day16
+
+
+
+  subroutine day17(file)
+    use day1817_mod
+    implicit none
+    character(len=*) :: file
+    type(instruction_t), allocatable :: instr(:)
+    call read_from_file(file, instr)
+  end subroutine day17
 
 
 
