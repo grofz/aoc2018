@@ -571,6 +571,7 @@
     cnt_fl = count(map%b(:,map%mnpos(2):map%mxpos(2))==CH_FLOW)
     cnt_st = count(map%b(:,map%mnpos(2):map%mxpos(2))==CH_FREZ)
     print *, 'Ans 1 ',cnt_fl+cnt_st,  (cnt_fl+cnt_st)==29802
+    print *, 'Ans 2 ',cnt_st,  (cnt_st)==24660
 
   end subroutine day17
 

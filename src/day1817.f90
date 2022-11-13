@@ -26,6 +26,7 @@ module day1817_mod
         type(spring_t), allocatable :: springs(:)
         integer :: nsprings=0
         integer :: idcounter=0
+        integer :: isteps=0
     contains
         procedure :: display => map_display
         procedure :: fill => map_fill
@@ -55,43 +56,29 @@ contains
         if (.not. this%is_active) return
 
         ! Check the current position:
-        ! ???if has been freezed: delete the spring  
-        ! if reached minimum: delete the spring
         if (map%b(this%xy(1),this%xy(2))==CH_FREZ) then
-            call this%report('is now under freezed water (move-up)')
-            !this%is_active = .false.
+            !call this%report('is now under freezed water (move-up)')
             this%xy(2)=this%xy(2)-1
             return
         end if
+        ! if reached minimum: delete the spring
         if (this%xy(2)>map%mxpos(2)) then
             call this%report('reached the bottom of the cave (delete)')
             this%is_active = .false.
         end if
-      ! if (map%b(this%xy(1),this%xy(2))==CH_FLOW) then
-      !     call this%report('is in running water (delete?)')
-      !     !this%is_active = .false.
-      ! end if
         if (map%b(this%xy(1),this%xy(2))==CH_CLAY) then
-            call this%report('spring inside clay')
-            this%is_active = .false.
+            error stop 'spring in clay'
         end if
 
         if (.not. this%is_active) return
 
         ! Check the pixel bellow 
         select case(map%b(this%xy(1),this%xy(2)+1))
-        case(CH_SAND) ! if sand: move down
+        case(CH_SAND, CH_FLOW) ! if penetrable move down
             map%b(this%xy(1),this%xy(2))=CH_FLOW
             this%xy(2) = this%xy(2)+1
 
-        case(CH_FLOW) ! if flowing water: delete spring
-            map%b(this%xy(1),this%xy(2))=CH_FLOW
-            !this%is_active = .false.
-            map%b(this%xy(1),this%xy(2))=CH_FLOW
-            this%xy(2) = this%xy(2)+1
-            call this%report('running water below (not deleted)')
-
-        case(CH_CLAY, CH_FREZ) ! if bellow unpenetrable: resolve left / right margins
+        case(CH_CLAY, CH_FREZ) ! if not penetrable: resolve left / right margins
             xleft = scanbed(map, this%xy, -1)
             xright = scanbed(map, this%xy, 1)
             associate(cl=>map%b(xleft,this%xy(2)), cr=>map%b(xright,this%xy(2)))
@@ -100,13 +87,12 @@ contains
                 ! closed/closed: freeze water layer, move up
                 map%b(xleft+1:xright-1,this%xy(2))=CH_FREZ
                 this%xy(2)=this%xy(2)-1
-                !map%b(this%xy(1),this%xy(2))=CH_SAND
 
-            else if ((cl==CH_CLAY .or. cl==CH_FREZ) .and. cr==CH_SAND) then
+            else if (cl==CH_CLAY .and. cr==CH_SAND) then
                 ! closed/open: move over the ridge
                 map%b(xleft+1:xright-1,this%xy(2))=CH_FLOW
                 this%xy(1)=xright
-            else if (cl==CH_SAND .and. (cr==CH_CLAY .or. cr==CH_FREZ)) then
+            else if (cl==CH_SAND .and. cr==CH_CLAY) then
                 ! open/closed: move over the ridge
                 map%b(xleft+1:xright-1,this%xy(2))=CH_FLOW
                 this%xy(1)=xleft
@@ -132,14 +118,13 @@ contains
             else if ((cl==CH_FLOW .and. cr==CH_CLAY) .or. &
                      (cl==CH_CLAY .and. cr==CH_FLOW)) then
                 ! closed/running water: delete the spring
-                call this%report('run into flowing water (not deleted?)')
-                ! TODO EXPERIMENTAL
-                !this%is_active = .false.
-                if (cl==CH_FLOW) then
-                    this%xy(1)=xleft
-                else
-                    this%xy(1)=xright
-                end if
+                call this%report('run into flowing water (deleted)')
+                this%is_active = .false.
+               ! if (cl==CH_FLOW) then
+               !     this%xy(1)=xleft
+               ! else
+               !     this%xy(1)=xright
+               ! end if
             else if (cl==CH_FLOW .and. CR==CH_FLOW) then
                 this%is_active=.false.
                 call this%report('flowing water on both sides (deleted)')
@@ -185,24 +170,24 @@ contains
         class(map_t), intent(inout) :: this
 
         integer :: is
-
         do
-            print *, 'Step begins with springs ', (this%springs(is)%id,is=1,this%nsprings)
+            print '(a,i0,a,*(i0,1x))', 'Step ',this%isteps,' begins with springs ', (this%springs(is)%id,is=1,this%nsprings)
             if (this%nsprings==0) exit
             is = 1
             do 
                 if (is > this%nsprings) exit
                 call this%springs(is)%onestep(this)
                 if (.not. this%springs(is)%is_active) then
-                    !call this%display(this%springs(is)%xy(2))
                     call sparr_remove(this%springs, this%nsprings, is)
                 else
                     is = is + 1
                 end if
             end do
-            !call this%display(240)
+            call sparr_remdup(this%springs, this%nsprings)
+            this%isteps = this%isteps+1
         end do
     end subroutine
+
 
     function map_new(inst_arr) result(new)
         type(map_t) :: new
@@ -413,10 +398,31 @@ contains
     end subroutine
 
 
-    subroutine sparr_sort(arr, n)
-        type(spring_t), intent(inout) :: arr(:)
-        integer, intent(in), optional :: n
-        ! TODO - if needed
+    subroutine sparr_remdup(arr, n)
+        type(spring_t), intent(inout), allocatable :: arr(:)
+        integer, intent(inout) :: n
+!
+! Remove duplicit springs
+!
+        integer :: i, j, xy(2)
+        i = 1
+        do
+            if (i > n) exit
+            if (.not. arr(i)%is_active) error stop 'remdup - inactive spring'
+            xy = arr(i)%xy
+            j = i+1
+            do 
+                if (j > n) exit
+                if (all(arr(j)%xy==xy)) then
+                    call arr(i)%report('has a duplicit spring...')
+                    call arr(j)%report('...will be deleted')
+                    call sparr_remove(arr, n, j)
+                else 
+                    j = j+1
+                end if
+            end do
+            i = i+1
+        end do
     end subroutine
 end module
     
