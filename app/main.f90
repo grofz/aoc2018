@@ -58,7 +58,7 @@
  160 call day16('inp/1816/input.txt')
      goto 170
 
- 170 call day17('inp/1817/test.txt') ! test.txt
+ 170 call day17('inp/1817/input.txt') ! test.txt
 
  goto 999
 
@@ -558,7 +558,20 @@
     implicit none
     character(len=*) :: file
     type(instruction_t), allocatable :: instr(:)
+    type(map_t) :: map
+    integer :: cnt_fl, cnt_st
     call read_from_file(file, instr)
+    map = map_t(instr)
+    !call map%display()
+    print '("Map range ",i0,":",i0," , ",i0,":",i0)', map%mnpos(1), map%mxpos(1), map%mnpos(2), map%mxpos(2)
+    print '("Map size  ",i0," x ",i0)', size(map%b,1), size(map%b,2)
+
+    call map%fill()
+    !call map%display()
+    cnt_fl = count(map%b(:,map%mnpos(2):map%mxpos(2))==CH_FLOW)
+    cnt_st = count(map%b(:,map%mnpos(2):map%mxpos(2))==CH_FREZ)
+    print *, 'Ans 1 ',cnt_fl+cnt_st,  (cnt_fl+cnt_st)==29802
+
   end subroutine day17
 
 
