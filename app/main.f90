@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 170
+    goto 180
 
  010 call day01('inp/1801/input.txt')
 
@@ -59,7 +59,9 @@
      goto 170
 
  170 call day17('inp/1817/input.txt') ! test.txt
+     goto 180
 
+ 180 call day18('inp/1818/input.txt') ! test.txt
  goto 999
 
  200 call day20('inp/1820/input.txt') ! test cases available
@@ -574,6 +576,67 @@
     print *, 'Ans 2 ',cnt_st,  (cnt_st)==24660
 
   end subroutine day17
+
+
+
+  subroutine day18(file)
+    use day1818_mod, only : board_t
+    implicit none
+    character(len=*), intent(in) :: file
+    integer :: ans1, ans2, mx, lastmx, period
+    integer, parameter :: REQ1=10, REQ2=1000000000
+    type(board_t) :: board
+
+    ! Part One
+    board = board_t(file)
+    do
+      call board%evolve()
+      !call board%display()
+      if (board%time>=REQ1) exit
+    end do
+    ans1 = board%resval()
+    print '("Answer 18/1 ",i0,l2)', ans1, ans1==505895
+
+    ! Part Two
+    ! Evolve until 500 to stabilize
+    ! Then determine the length of the oscillation
+    do
+      call board%evolve()
+      if (board%time>=500) exit
+    end do
+    mx = board%resval()
+    lastmx = board%time
+    period = -1
+    do 
+      call board%evolve()
+      associate(resval=>board%resval())
+        if (resval>mx) then
+          mx=resval
+        elseif (resval==mx) then
+          print *, 'MX',mx, board%time, board%time-lastmx
+          if (period == board%time-lastmx) then
+            print *, 'oscillation period calibrated'
+            exit
+          end if
+          period = board%time-lastmx
+          lastmx = board%time
+        end if
+      end associate
+      if (board%time>=1000) error stop 'day 18 - could not determine periodicity'
+    end do
+
+    ! Jump in time and evolve until requirement
+    associate(t=>board%time)
+      t = t + ((REQ2-t)/period)*period
+    end associate
+    do
+      call board%evolve()
+      if (board%time>=REQ2) exit
+    end do
+    call board%display()
+    ans2 = board%resval()
+    print '("Answer 18/2 ",i0,l2)', ans2, ans2==139590
+  end subroutine day18
 
 
 
