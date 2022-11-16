@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 180
+    goto 190
 
  010 call day01('inp/1801/input.txt')
 
@@ -56,12 +56,12 @@
  151 call day15('inp/1815/test5.txt') ! test0.txt - test5.txt
 
  160 call day16('inp/1816/input.txt')
-     goto 170
 
  170 call day17('inp/1817/input.txt') ! test.txt
-     goto 180
 
  180 call day18('inp/1818/input.txt') ! test.txt
+
+ 190 call day19('inp/1819/input.txt')
  goto 999
 
  200 call day20('inp/1820/input.txt') ! test cases available
@@ -535,7 +535,7 @@
     type(test_t), allocatable :: tests(:)
     logical :: map(0:NOPS-1,0:NOPS-1)    
     integer, allocatable :: decode(:)
-    type(computer_t) :: zx
+    type(computer_t) :: zx, zx2
     integer :: inst(4), after(4), i, ans1, j, k
     integer, allocatable :: code(:,:)
 
@@ -545,12 +545,15 @@
     
     ! Part two
     decode = decode_opcodes(map)       
+    zx = computer_t(4)
+    !zx%isdebug = .true.
     zx%dict = decode
     zx%r=0
     do i=1,size(code,2)
       call zx%exec(code(:,i))
-      print *, code(:,i), zx%r
     end do    
+    print *, zx%r(0)
+
   end subroutine day16
 
 
@@ -637,6 +640,51 @@
     ans2 = board%resval()
     print '("Answer 18/2 ",i0,l2)', ans2, ans2==139590
   end subroutine day18
+
+
+
+  subroutine day19(file)
+    use day1819_mod, only : compver2_t, faster
+    use iso_fortran_env, only : IK=>int64
+    implicit none
+    character(len=*), intent(in) :: file
+    type(compver2_t) :: zx128
+    integer(IK) :: i, ans1, ans2, r3val
+    integer, parameter :: MAXSTEPS=10000000
+
+    zx128 = compver2_t(file)
+    !call zx128%list()
+
+    r3val = -1
+    !zx128%isdebug=.true.
+    do i=1,MAXSTEPS
+      call zx128%onestep()
+      if (zx128%halted) exit
+      if (zx128%ip==1 .and. r3val<0) r3val = zx128%r(3)
+    end do
+    if (i==MAXSTEPS+1) error stop 'day19 - maximum steps reached'
+    print '("Instructions executed =",i0)', zx128%counter
+    ans1 = zx128%r(0)
+    print '("Answer 19/1 ",i0,l2,l2)', ans1, ans1==faster(int(r3val)), r3val==888
+
+    ! Part Two
+    ! Let us see, what number is in register 3, when main loops start
+    r3val = -1
+    call zx128%reset()
+    zx128%r(0)=1 ! Run another program
+    !zx128%isdebug=.true.
+    do i=1,100_IK
+      call zx128%onestep()
+      if (zx128%halted) exit
+      if (zx128%ip==1) then
+        r3val = zx128%r(3)
+        exit ! break point at instruction 1
+      end if
+    end do
+    if (r3val<0) error stop 'day19 - could not obtain r3val'
+    ans2 = faster(int(r3val))
+    print '("Answer 19/2 ",i0,l2)', ans2, ans2==30481920
+  end subroutine day19
 
 
 

@@ -1,16 +1,26 @@
 module day1816_mod
+    use iso_fortran_env, only : IK=>int64
     implicit none
 
-    integer, parameter :: NREG = 4, NOPS = 16, NBITS=2
+    character(len=4),parameter :: inst_list(0:15) = &
+    & ['addr','addi','mulr','muli','banr','bani','borr','bori',&
+    &  'setr','seti','gtir','gtri','gtrr','eqir','eqri','eqrr']
+
+    integer, parameter :: NOPS = 16, NBITS=15, NREGTEST=4, nreg=4
     type, public :: computer_t
-        integer :: r(0:NREG-1)
-        integer :: dict(0:NOPS-1)
+        integer(kind=IK), allocatable :: r(:)
+        integer :: dict(0:NOPS-1)=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+        logical :: isdebug = .false.
     contains
-        procedure :: exec => computer_exec
+        procedure, private :: computer_exec, computer_exec_name
+        generic :: exec => computer_exec, computer_exec_name
     end type
+    interface computer_t
+        module procedure computer_new
+    end interface
 
     type, public :: test_t
-        integer, dimension(1:NREG) :: befo, inst, afte
+        integer, dimension(1:NREGTEST) :: befo, inst, afte
     end type
 
     interface operator(.band.)
@@ -21,6 +31,10 @@ module day1816_mod
         module procedure op_bor
     end interface
 contains
+    type(computer_t) function computer_new(nreg) result(new)
+        integer, intent(in) :: nreg
+        allocate(new%r(0:nreg-1))
+    end function
 
     subroutine run_tests(tests, map, ans1)
         type(test_t), intent(in) :: tests(:)
@@ -127,12 +141,13 @@ contains
 
 
     function test_line(befo,inst,afte) result(valid)
-        integer, intent(in), dimension(4) :: befo, inst, afte
+        integer, intent(in), dimension(NREGTEST) :: befo, inst, afte
         logical :: valid(0:NOPS-1)
 
         type(computer_t) :: zx
         integer :: i
 
+        zx = computer_t(4)
         do i=lbound(valid,1),ubound(valid,1)
             zx%dict = i
             zx%r = befo
@@ -142,11 +157,35 @@ contains
     end function test_line
 
 
+    subroutine computer_exec_name(this, inst_name, inst_rest)
+        class(computer_t), intent(inout) :: this
+        character(len=4), intent(in) :: inst_name
+        integer, intent(in) :: inst_rest(3)
+
+        integer :: i, j
+        do i=0,NOPS-1
+            if (inst_list(i)(1:4)==inst_name(1:4)) exit
+        end do
+        if (i>NOPS-1) then
+            error stop 'instruction name not found'
+        else
+            do j=0,NOPS-1
+                if (this%dict(j)==i) exit
+            end do
+            if (j<=NOPS-1) then
+                call computer_exec(this,[j,inst_rest])
+            else
+                error stop 'computer - invalid dictionary'
+            endif
+        end if
+    end subroutine
+
+
     subroutine computer_exec(this, inst)
         class(computer_t), intent(inout) :: this
         integer, intent(in) :: inst(4)
 
-        integer :: op1, op2
+        integer(IK) :: op1, op2
         
         associate(a=>inst(2), b=>inst(3), c=>inst(4))
             select case(this%dict(inst(1)))
@@ -222,27 +261,30 @@ contains
                 error stop 'exec - unknown opcode'
             end select
         end associate
+        if (this%isdebug) write(*,'(a4,1x,3(i0,1x)," -> ",*(i0,1x))') &
+        &   inst_list(this%dict(inst(1))),inst(2:4),this%r
     end subroutine computer_exec
 
 
     elemental function op_band(a,b) result(c)
-        integer, intent(in) :: a, b
-        integer :: c
+        integer(IK), intent(in) :: a, b
+        integer(IK) :: c
         c = b2i(i2b(a) .and. i2b(b))
     end function
 
 
     elemental function op_bor(a,b) result(c)
-        integer, intent(in) :: a, b
-        integer :: c
+        integer(IK), intent(in) :: a, b
+        integer(IK) :: c
         c = b2i(i2b(a) .or. i2b(b))
     end function
 
 
     pure function i2b(i) result(b)
-        integer, intent(in) :: i
+        integer(IK), intent(in) :: i
         logical :: b(NBITS)
-        integer :: j1, j2, k
+        integer(IK) :: j1, j2
+        integer :: k
 
         b = .false.
         j1 = i
@@ -257,7 +299,7 @@ contains
 
     pure function b2i(b) result(i)
         logical, intent(in) :: b(:)
-        integer :: i
+        integer(IK) :: i
         integer :: k
         i = 0
         do k=1,size(b)
