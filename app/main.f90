@@ -800,18 +800,36 @@
     implicit none
 
     type(cave_t) :: cave
-    integer :: nx, ny, ans1
+    integer :: nx, ny, ans1, ans2
 
     call determine_gi(cave%gi)
     nx = size(cave%gi,1) 
     ny = size(cave%gi,2)
     print *, 'size cave = ', nx, ny
-    allocate(cave%el(0:nx-1,0:ny-1))
     allocate(cave%type(0:nx-1,0:ny-1))
-    cave%el = determine_el(cave%gi)
-    cave%type = determine_type(cave%el)
-    print *, 'size cave = ',size(cave%type,1), size(cave%type,2)
-    call cave%display()
+    cave%type = determine_type(determine_el(cave%gi))
+    !call cave%display()
     ans1 = cave%risklevel()
     print '("Answer 22/1 ",i0,l2)', ans1, ans1==6256
+
+    ! Part Two
+    allocate(cave%accessible(3,0:nx-1,0:ny-1))
+    associate(a=>cave%accessible)
+      a = .false.
+      where (cave%type==CH_ROCK)
+        a(ID_CLIMB,:,:) = .true.
+        a(ID_TORCH,:,:) = .true.
+      end where
+      where (cave%type==CH_WET)
+        a(ID_CLIMB,:,:) = .true.
+        a(ID_NONE,:,:) = .true.
+      end where
+      where (cave%type==CH_NARR)
+        a(ID_TORCH,:,:) = .true.
+        a(ID_NONE,:,:) = .true.
+      end where
+    end associate
+
+    call djikstra(cave, ans2)
+    print '("Answer 22/2 ",i0,l2)', ans2, ans2==973
   end subroutine day22
