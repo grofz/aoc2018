@@ -1,5 +1,5 @@
 module day1819_mod
-    use day1816_mod, only : computer_t
+    use day1816_mod, only : computer_t, IK
     implicit none
     private
     public faster
@@ -12,7 +12,7 @@ module day1819_mod
         integer, allocatable :: iargs(:,:) ! (1:3, 0:ninstr)
         character(len=4), allocatable :: iops(:) ! (o:ninstr)
         logical :: halted = .false.
-        integer :: counter = 0
+        integer(IK) :: counter = 0
     contains
         procedure :: onestep => compver2_onestep
         procedure :: reset => compver2_reset
@@ -80,6 +80,7 @@ contains
         this%halted = .false.
         this%counter = 0
         this%r = 0
+        this%isdebug = .false.
     end subroutine
 
 

@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 190
+    goto 210
 
  010 call day01('inp/1801/input.txt')
 
@@ -62,9 +62,10 @@
  180 call day18('inp/1818/input.txt') ! test.txt
 
  190 call day19('inp/1819/input.txt')
- goto 999
 
  200 call day20('inp/1820/input.txt') ! test cases available
+
+ 210 call day21('inp/1821/input.txt')
 
  999 continue
 
@@ -727,3 +728,65 @@
     ans2 = count(manh>=2000 .and. maze%b==CH_ROOM)
     print '("Answer 20/1 :",i0,l2)', ans2, ans2==8444
   end subroutine day20
+
+
+
+  subroutine day21(file)
+    use day1819_mod, only : compver2_t
+    use iso_fortran_env, only : IK=>int64
+    implicit none
+    character(len=*), intent(in) :: file
+    type(compver2_t) :: zx128
+    integer(IK) :: i, ans1, ans2, r3val
+    integer, parameter :: MAXSTEPS=2500, MAXFOUND=15000
+    integer :: found(MAXFOUND), nfound, j
+
+    zx128 = compver2_t(file)
+
+    ! First run
+    call zx128%list()
+    r3val = -1
+    !zx128%isdebug = .true.
+    do i=1,MAXSTEPS
+      call zx128%onestep()
+      if (zx128%ip==28) exit
+    end do
+    print '("Instructions executed = ",i0)', zx128%counter
+    r3val = zx128%r(3)
+
+    ! Second run
+    call zx128%reset()
+    zx128%r(0)=r3val         ! make computer halt?
+    do i=1,MAXSTEPS
+      call zx128%onestep()
+      if (zx128%halted) exit
+    end do
+    print '("When halted. Instructions executed = ",i0)', zx128%counter
+    ans1 = r3val
+    print '("Answer 21/1 ",i0,l2)', ans1, ans1==3173684
+
+    ! Third run
+    nfound = 0
+    ans2 = -1
+    call zx128%reset()
+    LOOP3: do i=1,MAXSTEPS*1000000
+      call zx128%onestep()
+      ! break-point at instruction @28 (comparison r0 and r3)
+      if (zx128%ip==28) then
+        associate(r3=>zx128%r(3))
+          do j=1,nfound
+            if (found(j)==r3) then
+              ans2 = found(nfound)
+              exit LOOP3
+            end if
+          end do
+          nfound = nfound + 1
+          if (nfound>MAXFOUND) error stop 'day 21 - increase buffer for found values'
+          found(nfound) = r3
+        end associate
+      end if
+      if (zx128%halted) error stop 'day 21 - unexpected halt'
+    end do LOOP3
+    print '("Instructions executed = ",i0)', zx128%counter
+    print '("Answer 21/2 ",i0,l2)', ans2, ans2==12464363
+  end subroutine day21

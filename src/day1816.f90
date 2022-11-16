@@ -6,7 +6,7 @@ module day1816_mod
     & ['addr','addi','mulr','muli','banr','bani','borr','bori',&
     &  'setr','seti','gtir','gtri','gtrr','eqir','eqri','eqrr']
 
-    integer, parameter :: NOPS = 16, NBITS=15, NREGTEST=4, nreg=4
+    integer, parameter :: NOPS = 16, NBITS=63, NREGTEST=4, nreg=4
     type, public :: computer_t
         integer(kind=IK), allocatable :: r(:)
         integer :: dict(0:NOPS-1)=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
@@ -31,9 +31,9 @@ module day1816_mod
         module procedure op_bor
     end interface
 contains
-    type(computer_t) function computer_new(nreg) result(new)
-        integer, intent(in) :: nreg
-        allocate(new%r(0:nreg-1))
+    type(computer_t) function computer_new(nreg0) result(new)
+        integer, intent(in) :: nreg0
+        allocate(new%r(0:nreg0-1))
     end function
 
     subroutine run_tests(tests, map, ans1)
@@ -289,10 +289,10 @@ contains
         b = .false.
         j1 = i
         do k=1,NBITS
-            j2 = j1 / 2**(NBITS-k)
+            j2 = j1 / 2_IK**(NBITS-k)
             if (j2>1) error stop 'i2b - value to large'
             if (j2==1) b(k)=.true.
-            j1 = j1 - j2*2**(NBITS-k)
+            j1 = j1 - j2*2_IK**(NBITS-k)
         end do
     end function
 
