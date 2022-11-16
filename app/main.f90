@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 210
+    goto 220
 
  010 call day01('inp/1801/input.txt')
 
@@ -66,6 +66,8 @@
  200 call day20('inp/1820/input.txt') ! test cases available
 
  210 call day21('inp/1821/input.txt')
+
+ 220 call day22()
 
  999 continue
 
@@ -790,3 +792,26 @@
     print '("Instructions executed = ",i0)', zx128%counter
     print '("Answer 21/2 ",i0,l2)', ans2, ans2==12464363
   end subroutine day21
+
+
+
+  subroutine day22()
+    use day1822_mod
+    implicit none
+
+    type(cave_t) :: cave
+    integer :: nx, ny, ans1
+
+    call determine_gi(cave%gi)
+    nx = size(cave%gi,1) 
+    ny = size(cave%gi,2)
+    print *, 'size cave = ', nx, ny
+    allocate(cave%el(0:nx-1,0:ny-1))
+    allocate(cave%type(0:nx-1,0:ny-1))
+    cave%el = determine_el(cave%gi)
+    cave%type = determine_type(cave%el)
+    print *, 'size cave = ',size(cave%type,1), size(cave%type,2)
+    call cave%display()
+    ans1 = cave%risklevel()
+    print '("Answer 22/1 ",i0,l2)', ans1, ans1==6256
+  end subroutine day22
