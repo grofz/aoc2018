@@ -1,0 +1,41 @@
+#ip 5
+@0  seti 123 0 3      ! r3 = 123
+@1  bani 3 456 3      ! r3 = r3 & 456            if (123 & 456 == 72) then...
+@2  eqri 3 72 3       ! r3 == 72  ?  r3
+@3  addr 3 5 5        ! YES -> @5 | NO -> @4     ... continue
+@4  seti 0 0 5        ! @1                       ... otherwise loop forever
+@5  seti 0 9 3        ! r3 = 0                   all registers are zero
+
+---> jumps here from @30 (r3==r0 failed)
+@6  bori 3 65536 1        ! r1 = r3 | 65536
+@7  seti 14906355 8 3     ! r3 = 14906355
+
+---> jumps here from @27
+@8  bani 1 255 4          ! r4 = r1 & 255
+@9  addr 3 4 3            ! r3 = r3 + r4
+@10 bani 3 16777215 3     ! r3 = r3 & 16777215
+@11 muli 3 65899 3        ! r3 = r3 * 65899
+@12 bani 3 16777215 3     ! r3 = r3 & 16777215
+@13 gtir 256 1 4          ! 256 > r1 ? r4           if r1 < 256 jump to testing of r3 at @28
+@14 addr 4 5 5            ! YES -> @16->@28 | NO -> @15 -> @17
+@15 addi 5 1 5            ! @17
+@16 seti 27 8 5           ! @28
+
+---> ends here if r1 >=256
+@17 seti 0 4 4            ! r4 = 0
+
+---> jumps here if (r2 <= r1)
+@18 addi 4 1 2            ! r2 = r4 + 1
+@19 muli 2 256 2          ! r2 = r2 + 256
+@20 gtrr 2 1 2            ! r2 > r1 ? r2                  if (r2 > r1) then ...
+@21 addr 2 5 5            ! YES @23->@26 | NO @22->@24      r1 = r4; goto @8
+@22 addi 5 1 5            ! @24                           else
+@23 seti 25 1 5           ! @26                             r4 = r4 + 1
+@24 addi 4 1 4            ! r4 = r4 + 1                     goto @18
+@25 seti 17 2 5           ! @18
+@26 setr 4 9 1            ! r1 = r4
+@27 seti 7 0 5            ! @8 
+
+@28 eqrr 3 0 4            ! r3 == r0 ? r4      *** watch r3 ***
+@29 addr 4 5 5            ! YES HALT | NO @30
+@30 seti 5 3 5            ! @6

@@ -1,0 +1,25 @@
+r3 = 0
+MAIN: do
+    r1 = r3 .bor. 65536
+    r3 = 14906355
+    SUB: do
+        r4 = r1 .band. 255
+        r3 = r3 + r4
+        r3 = r3 .band. 16777215
+        r3 = r3 * 65899
+        r3 = r3 .band. 16777215
+
+        if (r1 < 256) exit SUB
+
+        r4 = 0
+        do
+            if (r4 + 1+256 > r1) then
+                r1 = r4
+                exit
+            end if
+            r4 = r4 + 1
+        end do
+    end do SUB
+
+    if (r3==r0) exit MAIN
+end do MAIN
