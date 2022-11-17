@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 220
+    goto 240
 
  010 call day01('inp/1801/input.txt')
 
@@ -69,7 +69,10 @@
 
  220 call day22()
 
- 999 continue
+ 230 call day23('inp/1823/input.txt') ! test.txt, test2.txt
+
+ 240 call day24('inp/1824/input.txt') ! test.txt
+!240 call day24('inp/1824/test.txt') ! test.txt
 
   end program main
   
@@ -833,3 +836,126 @@
     call djikstra(cave, ans2)
     print '("Answer 22/2 ",i0,l2)', ans2, ans2==973
   end subroutine day22
+
+
+
+  subroutine day23(file)
+    use day1823_mod
+    use parse_mod, only : string_t, read_strings
+    implicit none
+    character(len=*), intent(in) :: file
+    type(nanobot_t), allocatable :: bots(:)
+    type(string_t), allocatable :: lines(:)
+    integer, parameter :: MAXJUMP=10000
+    integer :: i, j, k, indmax, maxr, ans1, counter, jump, bir
+    integer(i8b) :: dir(3), next(3), next2(3), cur(3), ans2
+
+    ! import nanobots from the file, get the one with highest range
+    indmax = -1
+    maxr = -1
+    lines = read_strings(file)
+    allocate(bots(size(lines)))
+    print '("Nanobots present ",i0)', size(bots)
+    do i=1,size(bots)
+      bots(i) = nanobot_t(lines(i)%str)
+      !print *, bots(i)%pos, bots(i)%rad
+      if (bots(i)%rad > maxr) then
+        maxr = bots(i)%rad
+        indmax = i
+      end if
+    end do
+    print *, '("Nanobot wirth highest radius: ",4(i0,1x))', &
+    & bots(indmax)%pos, bots(indmax)%rad
+
+    ! Part One - count how many other bots are in range of the one
+    ! with the highest range
+    ans1 = 0
+    do i=1,size(bots)
+      if (bots(indmax)%isinrange(bots(i)%pos)) ans1 = ans1 + 1
+    end do
+    print '("Answer 23/1 ",i0,l2)', ans1, ans1==491
+
+    ! Part Two
+    !cur = [0,0,0]
+    cur = [0,1,2]
+    counter = 0
+    jump=1000
+    MAIN: do
+      dir = best_dir(cur, bots)
+      ! Accept jump?
+      ACCEPT: do
+        next = cur + jump*dir
+        next2 = cur+2*jump*dir
+
+        if (is_better(next,cur,bots)) then
+          ! accept
+          if (is_better(next2,next,bots)) jump = min(jump*2, MAXJUMP)
+          exit ACCEPT
+        end if
+
+        if (jump==1) exit ACCEPT
+        print *, 'reducing step'
+        jump = max(jump/2,1)
+      end do ACCEPT
+      cur = next
+      counter = counter + 1
+      print *, 'jump =',jump
+      print '(3(i0,1x)," -> ",i0,1x,g0)', cur, bots_in_range(cur,bots), bots_field(cur,bots)
+      if (sum(abs(dir))==0) exit
+    end do MAIN
+    bir = bots_in_range(cur,bots)
+    print *, 'result = ',cur, bir
+
+    ! Phase Two of the search
+    goto 100
+    !MAIN2: do
+    !  dir = best_dir2(cur, bots)
+    !  print '(3(i0,1x)," -> ",i0,1x,i8)', cur, bots_in_range(cur,bots), manhattan(cur+dir,int([0,0,0],I8B))
+    !  cur=cur+dir
+    !  if (sum(abs(dir))==0) exit MAIN2
+    !end do MAIN2
+
+    100 ans2 = manhattan(cur,int([0,0,0],I8B))
+    print '("Answer 23/2 ",i0,l2)', ans2, ans2==60474080
+
+  end subroutine day23
+
+
+
+  subroutine day24(file)
+    use day1824_mod, only : unit_t, fight_battle, read_units
+    implicit none
+    character(len=*), intent(in) :: file
+    type(unit_t), allocatable :: units(:)
+    integer :: ans1, ans2, b(2), res(2), bmid, resmid
+
+    units = read_units(file)
+    call fight_battle(units, 0, ans1)
+    print '("Answer 24/1 ",i0,l2)', -ans1, -ans1==18532
+
+    ! Part Two
+    b(1) = 0
+    res(1) = ans1
+    units = read_units(file)
+    b(2) = 100000
+    call fight_battle(units, b(2), res(2))
+    do
+      print '("Boost ",i0," (",i0,") --- ",i0," (",i0,")")', &
+      & b(1),res(1),b(2),res(2)
+      if (res(1)*res(2)>0) error stop 'day 24 - solution not in range'
+      bmid = b(1)+(b(2)-b(1))/2
+      if (bmid==b(1)) exit
+      units = read_units(file)
+      call fight_battle(units, bmid, resmid)
+      if (resmid > 0) then
+        b(2) = bmid
+        res(2) = resmid
+      else
+        b(1) = bmid
+        res(1) = resmid
+      endif
+    end do
+
+    ans2 = res(2)
+    print '("Answer 24/1 ",i0,l2)', ans2, ans2==6523
+  end subroutine
