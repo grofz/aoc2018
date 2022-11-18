@@ -1,6 +1,6 @@
   program main
     implicit none
-    goto 240
+    goto 250
 
  010 call day01('inp/1801/input.txt')
 
@@ -72,7 +72,8 @@
  230 call day23('inp/1823/input.txt') ! test.txt, test2.txt
 
  240 call day24('inp/1824/input.txt') ! test.txt
-!240 call day24('inp/1824/test.txt') ! test.txt
+
+ 250 call day25('inp/1825/input.txt') ! test1-4.txt
 
   end program main
   
@@ -958,4 +959,18 @@
 
     ans2 = res(2)
     print '("Answer 24/1 ",i0,l2)', ans2, ans2==6523
-  end subroutine
+  end subroutine day24
+
+
+
+  subroutine day25(file)
+    use day1825_mod
+    implicit none
+    character(len=*), intent(in) :: file
+    type(spacepoint_t), allocatable :: arr(:)
+    integer :: ans1
+
+    call read_spacepoints(file, arr)
+    call connect(arr, ans1)
+    print '("Answer 25/1 ",i0,l2)', ans1, ans1==420
+  end subroutine day25
